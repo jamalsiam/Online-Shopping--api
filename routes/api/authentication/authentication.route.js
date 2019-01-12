@@ -9,7 +9,6 @@ const redis = require('../../../common/redis');
 
 
 
-
 router.post('/login', (req, res, next) => {
     const { email, password } = req.body;
 
@@ -102,7 +101,7 @@ router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }))
 
 router.get('/facebook/callback', passport.authenticate('facebook', { failureRedirect: '/login' }),
     (req, res) => {
-        res.redirect('http://localhost:4200/#/');
+        res.redirect(process.env.frontEndUri);
     });
 
 
@@ -115,13 +114,52 @@ router.get('/google/callback',
     (req, res) => {
         const { displayName, emails } = req.session.passport.user.profile;
 
+        models.User
+            .find({
+                where: {
+                    email: emails[0].value
+                }
+            })
+            .then(function (user) {
+                if (!user) {
+                    models.User
+                        .create({ username: displayName, email: emails[0].value, password: 'unset' })
+                        .then((newuser) => {
+                            const { id } = newuser.dataValues;
+                            const { token, exp } = jwt.sign(id);
 
-        console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
-        console.log(displayName, emails);
-        console.log('xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx');
+                            const response = {
+                                id,
+                                accessToken: token,
+                                refreshToken: jwt.sign(id).token,
+                                exp
+                            }
 
+                            redis.setRedisRecord(id, response);
+                            return res.cookie(process.env.cookieKey, JSON.stringify({ ...response })).redirect(process.env.frontEndUri);
 
-        res.cookie('user', { name: 'asd', age: 12, s: '1212' }).redirect('http://localhost:4200/#/');
+                        })
+                        .catch(err => {
+                            return res.cookie(process.env.cookieKey, null).redirect(process.env.frontEndUri);
+                        })
+
+                } else {
+                    const { id } = user.dataValues;
+                    const { token, exp } = jwt.sign(id);
+
+                    const response = {
+                        id,
+                        accessToken: token,
+                        refreshToken: jwt.sign(id).token,
+                        exp
+                    }
+
+                    redis.setRedisRecord(id, response);
+                    return res.cookie(process.env.cookieKey, JSON.stringify({ ...response })).redirect(process.env.frontEndUri);
+                }
+
+            });
+
     });
 
 
