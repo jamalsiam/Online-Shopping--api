@@ -1,7 +1,7 @@
+
 const express = require('express');
 const router = express.Router();
 
-router.use(require('./authentication'));
-router.use(require('./account'));
+router.use('/account', require('./account.route'));
 
 module.exports = router;

@@ -15,23 +15,23 @@ const getTokenFromHeaders = (req, res, next) => {
         if (!error && (accessToken === authorization.split(' ')[1])) {
 
           if (verifyedToken.exp > Date.now()) {
-            req.userId = verifyedToken;
+            req.userId = verifyedToken.id;
             next()
 
           } else {
-            res.json({ status: 190 })
+            res.sendStatus(190)
           }
 
         } else {
-          res.json({ status: 401 })
+          res.sendStatus(401)
         }
       })
 
     } catch (error) {
-      res.json({ status: 401 })
+      res.sendStatus(401)
     }
   } else {
-    res.json({ status: 401 })
+    res.sendStatus( 401 )
   }
 };
 
