@@ -17,6 +17,7 @@ const sequelize = new Sequelize(process.env.SEQUELIZE_DB, process.env.SEQUELIZE_
 
 const models = {
     User: sequelize.import('./user'),
+    Item: sequelize.import('./item'),
 };
 
 Object.keys(models).forEach((modelName) => {
@@ -33,3 +34,4 @@ models.sequelize.sync({}).then(() => {});
 
 //https://github.com/benawad/slack-clone-server/blob/2_sequelize/models/index.js
 //https://www.youtube.com/watch?v=BpEw1PNdvkg
+//select * from information_schema.columns where table_name = 'Items'
