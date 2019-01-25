@@ -25,7 +25,23 @@ var storage = multer.diskStorage(
 var upload = multer({ storage: storage }).array("uploads", 12);
 
 router.get('/list', (req, res) => {
-  console.log('Under Development');
+  models.Item.findAll({
+    limit: 40,
+    order: [
+      ['id', 'DESC'],
+    ],
+    include: [{
+      model: models.User,
+      as: 'user',
+      attributes: ['username', 'id']
+    }],
+    attributes: ['category', 'createdAt', 'discount', 'id', 'images', 'name', 'new', 'price']
+  })
+    .then((data) => {
+      data.map((item) => { item.images = `${process.env.BACK_END_URL}/${item.user.id}/items/${item.images[0]}` })
+      res.json(data)
+    })
+
 })
 
 router.get('/:id', (req, res) => {
