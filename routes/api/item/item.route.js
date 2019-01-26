@@ -41,11 +41,30 @@ router.get('/list', (req, res) => {
       data.map((item) => { item.images = `${process.env.BACK_END_URL}/${item.user.id}/items/${item.images[0]}` })
       res.json(data)
     })
+    .catch(() => {
+      res.json([])
+    })
 
 })
 
 router.get('/:id', (req, res) => {
-  console.log('Under Development');
+  models.Item.find({
+    where: {
+      id: req.params.id
+    },
+    include: [{
+      model: models.User,
+      as: 'user',
+      attributes: ['username', 'id']
+    }],
+  })
+    .then(({ dataValues }) => {
+      dataValues.images.map((image, i) => { dataValues.images[i] = `${process.env.BACK_END_URL}/${dataValues.user.id}/items/${image}` })
+      res.json(dataValues)
+    })
+    .catch(()=>{
+      res.sendStatus(404)
+    })
 })
 
 router.post('/', auth.required, upload, (req, res) => {
