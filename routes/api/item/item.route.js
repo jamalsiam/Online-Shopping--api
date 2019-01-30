@@ -47,6 +47,30 @@ router.get('/list', (req, res) => {
 
 })
 
+
+router.get('/accountList', auth.required, (req, res) => {
+
+  models.Item.findAll({
+    where: {
+      user_id: req.userId
+    },
+    order: [
+      ['id', 'DESC'],
+    ],
+    attributes: ['category', 'createdAt', 'discount', 'id', 'images', 'name', 'new', 'price', 'user_id']
+  })
+    .then((data) => {
+      data.map((item) => { item.images = `${process.env.BACK_END_URL}/${item.user_id}/items/${item.images[0]}` })
+      res.json(data)
+    })
+    .catch((a) => {
+      console.log(a);
+
+      res.json([])
+    })
+
+})
+
 router.get('/:id', (req, res) => {
   models.Item.find({
     where: {
@@ -62,7 +86,7 @@ router.get('/:id', (req, res) => {
       dataValues.images.map((image, i) => { dataValues.images[i] = `${process.env.BACK_END_URL}/${dataValues.user.id}/items/${image}` })
       res.json(dataValues)
     })
-    .catch(()=>{
+    .catch(() => {
       res.sendStatus(404)
     })
 })
@@ -87,5 +111,22 @@ router.post('/', auth.required, upload, (req, res) => {
 
 })
 
+router.delete('/delete/:itemId', auth.required, (req, res) => {
+  
+  models.Item.
+  destroy({
+    where: {
+      id:req.params.itemId,
+      user_id:req.userId
+    }
+  })
+  .then(()=>{
+    res.sendStatus(200)
+  })
+  .catch(()=>{
+    res.sendStatus(404)
+  })
+
+})
 
 module.exports = router;
