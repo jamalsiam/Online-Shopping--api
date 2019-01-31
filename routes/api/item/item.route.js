@@ -111,7 +111,7 @@ router.post('/', auth.required, upload, (req, res) => {
 
 })
 
-router.delete('/delete/:itemId', auth.required, (req, res) => {
+router.delete('/:itemId', auth.required, (req, res) => {
   
   models.Item.
   destroy({
