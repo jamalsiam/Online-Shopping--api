@@ -11,8 +11,11 @@ const getTokenFromHeaders = (req, res, next) => {
 
       const verifyedToken = jwt.verify(authorization.split(' ')[1]);
       redis.getRedisRecord(verifyedToken.id, (error, result) => {
-        const { accessToken } = result;
-        if (!error && (accessToken === authorization.split(' ')[1])) {
+        let accessToken = '';
+        if (result) {
+          accessToken = result.accessToken;
+        }
+        if (!error && !!accessToken && (accessToken === authorization.split(' ')[1])) {
 
           if (verifyedToken.exp > Date.now()) {
             req.userId = verifyedToken.id;
@@ -31,7 +34,7 @@ const getTokenFromHeaders = (req, res, next) => {
       res.sendStatus(401)
     }
   } else {
-    res.sendStatus( 401 )
+    res.sendStatus(401)
   }
 };
 
